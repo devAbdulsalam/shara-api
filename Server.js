@@ -25,6 +25,7 @@ mongoose.connect(process.env.MDB_URL, {
 .then(()=> {
     app.listen(process.env.PORT, () => {
         console.log('connect to database successfully and listening on port', process.env.PORT);
+        console.log("Welcome to shara-api")
     })
 })
 .catch((err) => console.log(err));
