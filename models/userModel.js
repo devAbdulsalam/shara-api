@@ -1,5 +1,5 @@
-const bcrypt = require("bcrypt");
 const validator = require("validator");
+const bcrypt = require("bcrypt");
 const  mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -29,10 +29,10 @@ userSchema.statics.signup = async function(name, phone, email, password) {
         throw Error('Name is required')
     }
     if (!password) {
-        throw Error('password is required')
+        throw Error('Password is required')
     }
-    if (!phone || !email ) {
-        throw Error('Input Phone or Email-address')
+    if (!phone ) {
+        throw Error('Phone Number is required')
     }
         // //Validator
     if(!validator.isStrongPassword(password)){
@@ -42,13 +42,13 @@ userSchema.statics.signup = async function(name, phone, email, password) {
    const phoneexists = await this.findOne({ phone })
 
   if (phoneexists) {
-    throw Error('Phone Number already in use my another account')
+    throw Error('Phone Number already Exists')
   }
 
   const emailexists = await this.findOne({ email })
 
   if (emailexists) {
-    throw Error('Email already in use my another account')
+    throw Error('Email Address already Exists')
   }
 
   const salt = await bcrypt.genSalt(10)
