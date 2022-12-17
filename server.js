@@ -30,6 +30,10 @@ mongoose.connect(process.env.MDB_URL, {
 })
 .catch((err) => console.log(err));
 
+
+app.use('/', express.static('public'))
+// app.use('/', render())
+
 // // users routes
 app.use("/user", userRoutes)
 
