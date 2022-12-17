@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const cors = require("cors")
 const userRoutes = require('./routes/user')
 
-mongoose.set('strictQuery', false);
+mongoose.set('strictQuery', true);
 // express app
 const app = express();
 //compression
@@ -24,7 +24,7 @@ mongoose.connect(process.env.MDB_URL, {
 })
 .then(()=> {
     app.listen(process.env.PORT, () => {
-        console.log('connect to database successfully and listening on port', process.env.PORT);
+        console.log('connected to database successfully and listening on port', process.env.PORT);
         console.log("Welcome to shara-api")
     })
 })
