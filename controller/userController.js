@@ -12,7 +12,7 @@ const loginUser = async (req, res) => {
     try {
         // retrieve user and wallet and transaction history
         const user = await User.login(phone, password)
-        const wallet = await Wallet.findOne({ userId: user._id });
+        const wallet = await Wallet.findOne({ userId: user._id});
         const transaction = await Transaction.findOne({ userId: user._id });
         // create a token
         const token = createToken(user._id)
@@ -29,7 +29,7 @@ const signinUser = async (req, res) => {
     try {
         const user = await User.signup(name, phone, email, password)
         // create new wallet and transaction history for user
-         await Wallet.create({ userId: user._id });
+         await Wallet.create({ userId: user._id, balance : "0", phone });
          await Transaction.create({ userId: user._id });
          // create a token
         const token = createToken(user._id)
@@ -73,10 +73,28 @@ const resetPassword = async (req, res) => {
         res.status(404).json({error: error.message})
     }
 }
+// // change Password
+const changePassword = async (req, res) => {
+    const {id, token} = params
+    try {
+        const user = await User.resetpswd(id)
+        // // create a token
+        const secret = passwordToken(user.email, user._id)
+        // // verify the token
+        const verify =  jwt.verify(token, secret);
+        if(!verify){
+           res.status(401).json({error: "verification failed"}) 
+        }
+        res.status(200).json({verify, token, message : "Password Reset Successfully"})
+    } catch (error) {
+        res.status(404).json({error: error.message})
+    }
+}
 
 module.exports = {
     signinUser,
     loginUser,
     forgetPassword,
-    resetPassword
+    resetPassword,
+    changePassword
 }

@@ -8,13 +8,17 @@ const userSchema = new Schema({
         type : String,
         require: true
     },
+    image:{
+        type : String,
+        require: true
+    },
+    address:{
+        type : String,
+        require: true
+    },
     phone:{
         type : String,
         require: true,
-        unique: true
-    },
-    email:{
-        type : String,
         unique: true
     },
     password:{
