@@ -20,6 +20,15 @@ app.use(
 );
 app.use(express.json());
 
+
+// const path = require("path");
+// if (process.env.NODE_ENV === "production") {
+//   app.use(express.static("build"));
+//   app.get("*", (req, res) => {
+//     res.sendFile(path.resolve(__dirname, "build", "index.html"));
+//   });
+// }
+
 // //connect database
 mongoose.connect(process.env.MDB_URL, {
     useNewUrlParser: true,
@@ -36,6 +45,9 @@ mongoose.connect(process.env.MDB_URL, {
 
 ////use static for csss and other files
 app.use(express.static('public'))
+
+// uploads
+// // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {
   res.sendFile('./views/index.html', {root : __dirname});
