@@ -25,9 +25,9 @@ const loginUser = async (req, res) => {
 
 // create User
 const signinUser = async (req, res) => {
-    const {name, phone, email, password} = req.body
+    const {name, phone,  password} = req.body
     try {
-        const user = await User.signup(name, phone, email, password)
+        const user = await User.signup(name, phone, password)
         // create new wallet and transaction history for user
          await Wallet.create({ userId: user._id, balance : "0", phone });
          await Transaction.create({ userId: user._id });

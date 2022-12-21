@@ -28,7 +28,7 @@ const userSchema = new Schema({
 });
 
 // static signup method
-userSchema.statics.signup = async function(name, phone, email, password) {
+userSchema.statics.signup = async function(name, phone,  password) {
     if (!name) {
         throw Error('Name is required')
     }
@@ -49,15 +49,15 @@ userSchema.statics.signup = async function(name, phone, email, password) {
     throw Error('Phone Number already Exists')
   }
 
-  const emailexists = await this.findOne({ email })
+  // const emailexists = await this.findOne({ email })
 
-  if (emailexists) {
-    throw Error('Email Address already Exists')
-  }
+  // if (emailexists) {
+  //   throw Error('Email Address already Exists')
+  // }
 
   const salt = await bcrypt.genSalt(10)
   const hash = await bcrypt.hash(password, salt)
-  const user = await this.create({ name, phone, email, password : hash})
+  const user = await this.create({ name, phone, password : hash})
   return user
 }
 
