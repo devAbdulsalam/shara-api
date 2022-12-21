@@ -1,10 +1,12 @@
 require('dotenv').config()
 
 const express = require('express');
+const fileUpload = require("express-fileupload")
 const compression = require('compression')
 const mongoose = require("mongoose");
 const cors = require("cors")
 const userRoutes = require('./routes/user')
+const path = require("path");
 
 mongoose.set('strictQuery', true);
 // express app
@@ -14,14 +16,18 @@ app.use(compression());
 // cors settings
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:3000", "http://localhost:4000"],
     credentials: true,
   })
 );
 app.use(express.json());
+app.use(fileUpload({
+  useTempFiles: true,
+  tempFileDir: path.join(__dirname, 'tmp'),
+  createParentPath: true,
+}))
 
 
-// const path = require("path");
 // if (process.env.NODE_ENV === "production") {
 //   app.use(express.static("build"));
 //   app.get("*", (req, res) => {
@@ -46,9 +52,6 @@ mongoose.connect(process.env.MDB_URL, {
 ////use static for csss and other files
 app.use(express.static('public'))
 
-// uploads
-// // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
 app.get("/", (req, res) => {
   res.sendFile('./views/index.html', {root : __dirname});
 });
@@ -60,7 +63,23 @@ app.use("/user", userRoutes)
 app.use("/wallet", userRoutes)
 
 
+// // user profile
+app.post('/user/profile', async (req, res) => {
+  try {
+    const image = req.files.image
+      const fileName =  new Date().getTime().toString + path.extname(file.name)
+      const savePath = path.join(__dirname, "public", "uploads", fileName);
+      await image.mv(savePath)
+      res.status(200).json({ message : "image upload Successfully"})
+    } catch (error) {
+        res.status(404).json({error: error.message})
+    }
+})
+
+
+
 // 404 page
 app.use( (req, res) =>{
     res.status(404).sendFile('./views/404.html', {root : __dirname});
 })
+

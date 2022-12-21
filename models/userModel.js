@@ -63,12 +63,13 @@ userSchema.statics.signup = async function(name, phone, email, password) {
 
 // static login method
 userSchema.statics.login = async function(phone, password) {
+  console.log(phone, password)
 
   if (!phone  && !password) {
     throw Error('All fields must be filled')
   }
 
-  let user = await this.findOne({ phone})
+  let user = await this.findOne({phone})
 
   if (!user) {
     throw Error('user does not  exixt')

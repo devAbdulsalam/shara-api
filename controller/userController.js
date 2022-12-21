@@ -78,7 +78,7 @@ const changePassword = async (req, res) => {
     const {id, token} = params
     try {
         const user = await User.resetpswd(id)
-        // // create a token
+           // // create a token
         const secret = passwordToken(user.email, user._id)
         // // verify the token
         const verify =  jwt.verify(token, secret);
@@ -91,10 +91,14 @@ const changePassword = async (req, res) => {
     }
 }
 
+
+
+
+
 module.exports = {
     signinUser,
     loginUser,
     forgetPassword,
     resetPassword,
-    changePassword
+    changePassword,
 }
