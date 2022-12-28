@@ -28,13 +28,6 @@ app.use(fileUpload({
 }))
 
 
-// if (process.env.NODE_ENV === "production") {
-//   app.use(express.static("build"));
-//   app.get("*", (req, res) => {
-//     res.sendFile(path.resolve(__dirname, "build", "index.html"));
-//   });
-// }
-
 // //connect database
 mongoose.connect(process.env.MDB_URL, {
     useNewUrlParser: true,
@@ -65,9 +58,11 @@ app.use("/wallet", userRoutes)
 
 // // user profile
 app.post('/user/profile', async (req, res) => {
+  const {name, phone, email, address} = JSON.parse(req.body.user)
+  console.log(name, phone, email, address)
   try {
     const image = req.files.image
-      const fileName =  new Date().getTime().toString + path.extname(file.name)
+      const fileName =  new Date().getTime().toString() + path.extname(image.name);
       const savePath = path.join(__dirname, "public", "uploads", fileName);
       await image.mv(savePath)
       res.status(200).json({ message : "image upload Successfully"})
@@ -75,7 +70,6 @@ app.post('/user/profile', async (req, res) => {
         res.status(404).json({error: error.message})
     }
 })
-
 
 
 // 404 page

@@ -12,6 +12,11 @@ const userSchema = new Schema({
         type : String,
         require: true
     },
+    email:{
+        type : String,
+        require: true,
+        unique: true
+    },
     address:{
         type : String,
         require: true
@@ -109,5 +114,22 @@ userSchema.statics.resetpswd = async function(id) {
   }
 
   return user
+}
+userSchema.statics.changepsw = async function(email, password) {
+   let user = await this.findOne({phone})
+
+  if (!user) {
+    throw Error('User does not  exist!!')
+  }
+
+  if(!validator.isStrongPassword(password)){
+        throw Error('Input a strong password')
+    }
+
+  const salt = await bcrypt.genSalt(10)
+  const hash = await bcrypt.hash(password, salt)
+  
+
+  return {password: hash}
 }
 module.exports = mongoose.model('User', userSchema);
