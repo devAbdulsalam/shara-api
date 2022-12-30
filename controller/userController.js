@@ -4,10 +4,6 @@ const Transaction = require('../models/transactionModel')
 const jwt = require('jsonwebtoken')
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
-const accountSid = process.env.ACCOUNT_SID
-const auth_token = process.env.AUTH_TOKEN
-
-const twilio = require("twilio")(accountSid, auth_token);
 
 const createToken = (_id) => {
   return jwt.sign({_id}, process.env.SECRET, { expiresIn: '3d' })
@@ -22,12 +18,6 @@ const transporter = nodemailer.createTransport({
     }
 }) 
 
-// twilio.messages.create({
-//     from:"+17655133822",
-//     to:"+2349035095173",
-//     body:"testing twilio"
-// }).then((res) => console.log('message sent sucessfully'))
-// .catch((error) => console.log(error))
 
 // // login user
 const loginUser = async (req, res) => {
