@@ -6,6 +6,7 @@ const compression = require('compression')
 const mongoose = require("mongoose");
 const cors = require("cors")
 const userRoutes = require('./routes/user')
+const walletRoutes = require('./routes/wallet')
 const path = require("path");
 
 mongoose.set('strictQuery', true);
@@ -54,7 +55,7 @@ app.get("/", (req, res) => {
 app.use("/user", userRoutes)
 
 // // users routes
-app.use("/wallet", userRoutes)
+app.use("/wallet", walletRoutes)
 
 
 // // user profile

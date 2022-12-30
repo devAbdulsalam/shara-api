@@ -14,7 +14,7 @@ const walletSchema = new Schema({
         type : Number,
         require: true
     },
-    transfer_pin:{
+    pin:{
         type : String,
         require: true
     },
