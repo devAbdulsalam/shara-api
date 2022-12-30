@@ -4,6 +4,10 @@ const Transaction = require('../models/transactionModel')
 const jwt = require('jsonwebtoken')
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
+const accountSid = process.env.ACCOUNT_SID
+const auth_token = process.env.AUTH_TOKEN
+
+const twilio = require("twilio")(accountSid, auth_token);
 
 const createToken = (_id) => {
   return jwt.sign({_id}, process.env.SECRET, { expiresIn: '3d' })
@@ -13,13 +17,17 @@ const createToken = (_id) => {
 const transporter = nodemailer.createTransport({
     service:"gmail",
     auth:{
-        // user:process.env.EMAIL,
-        // pass:process.env.PASSWORD
-        user:"ammuftau74@getMaxListeners.com",
-        pass: "Avenger74"
+        user:process.env.EMAIL,
+        pass:process.env.PASSWORD
     }
 }) 
 
+// twilio.messages.create({
+//     from:"+17655133822",
+//     to:"+2349035095173",
+//     body:"testing twilio"
+// }).then((res) => console.log('message sent sucessfully'))
+// .catch((error) => console.log(error))
 
 // // login user
 const loginUser = async (req, res) => {
@@ -82,20 +90,28 @@ const updateProfile = async (req, res) => {
 
 
 // user profile pic
-// // user profile
-// const updateImage =  async (req, res) => {
-//   const {name, phone, email, address} = JSON.parse(req.body.user)
-//   console.log(name, phone, email, address)
-//   try {
-//     const image = req.files.image
-//       const fileName =  new Date().getTime().toString() + path.extname(image.name);
-//       const savePath = path.join(__dirname, "public", "uploads", fileName);
-//       await image.mv(savePath)
-//       res.status(200).json({ message : "image upload Successfully"})
-//     } catch (error) {
-//         res.status(404).json({error: error.message})
-//     }
-// }
+const updateImage =  async (req, res) => {
+  const {name, phone, email, address} = JSON.parse(req.body.user)
+  console.log(name, phone, email, address)
+  try {
+    const image = req.files.image
+      const fileName =  new Date().getTime().toString() + path.extname(image.name);
+      const savePath = path.join(__dirname, "public", "uploads", fileName);
+      await image.mv(savePath)
+      let user = await User.find({_id :id})
+        if(user){
+            user.name = name || req.body.name || user.name
+            user.phone = phone || req.bodyphone || user.phone
+            user.address = address ||req.body.address || user.address
+            user.email = email || req.body.email || user.email
+            user.image = fileName
+        }
+      user = await user.save()
+      res.status(200).json({ message : "image upload Successfully"})
+    } catch (error) {
+        res.status(404).json({error: error.message})
+    }
+}
 
 // // forget Password
 const forgetPassword = async (req, res) => {
@@ -104,30 +120,27 @@ const forgetPassword = async (req, res) => {
         const user = await User.fgtpswd(email)
         // create a token
         const token = createToken(user._id)
-        const link = `http://localhost:3000/user/reset-password/${user._id}/${token}`;
+        const link = `http://localhost:3000/resetpassword/${user._id}/${token}`;
 
         const mailoption = {
             from: 'ammuftau74@gmail.com', // sender address
             to: email, // receivers address
             subject: "Email for Password Reset", // Subject line
             text: `This Link is valid for 2 Minutes ${link}`, // plain text body
-            html: "<b>Hello world?</b>", 
+            html: `<p>This Link is valid for 2 Minutes ${link}</p>`, 
         } 
         
         transporter.sendMail(mailoption, (error, info) => {
             if(error){
-                console.log(error, "error");
+                // console.log(error, "error");
                 res.status(401).json({error: error})
             }else{
-                console.log(info.response, "success");
-                res.status(201).json({token, message: "Email sent successfully"})
+                // console.log(info.response, "success");
+                res.status(200).json({token, info, message: "Password reset link sent successfully"})
             }
         })
-        
-        // console.log("Password reset link sent")
-        // res.status(200).json({link, token, message : "Password reset link sent"})
     } catch (error) {
-        res.status(404).json({error: error.message})
+        res.status(404).json({error: error})
     }
 }
 
@@ -135,41 +148,49 @@ const forgetPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
     const {id, token} = req.params
     try {
-        const user = await User.resetpswd(id)
+        let user = await User.find({_id :id})
+
+        if (!user) {
+            throw Error('User does not  exist!!')
+        }
         // // verify the token
         const verify =  jwt.verify(token, process.env.SECRET)
+
         if(!verify){
-           res.status(401).json({error: "verification failed"})
+           throw Error("verification failed")
         }
-        const link = `http://localhost:3000/user/reset-password/`
-        console.log(user, verify)
-        res.status(200).json({user, verify, link, token, message : "Password Reset Successfully"})
+        res.status(200).json({user, verify, token, message : "Password Reset Successfully"})
 
     } catch (error) {
-        res.status(404).json({error: error.message})
+        res.status(401).json({error : error, message : "Something went wrong"})
     }
 }
 
 // // change Password
 const changePassword = async (req, res) => {
-    const {id, token} = req.params
-    const {password} = req.body
+    const {id, token, password, confirmPassword} = req.body
     try {
-        const user = await User.signup(email, password)
         // // verify the token
         const verify =  jwt.verify(token, process.env.SECRET)
         if(!verify){
-          return res.status(401).json({error: "verification failed"}) 
+            return res.status(401).json({error: "verification failed"}) 
         }
-        if(user){
-            console.log(password, user.password, verify)
+        if(verify){
+
+            const newpassword = await User.changepsw(id, password, confirmPassword)
+            
+            let user = await User.findByIdAndUpdate({_id:id},{password:newpassword});
+            
+            user = await user.save()
+            res.status(200).json({user, message: "Password Changed Successfully"})
+
+        }else{
+            res.status(401).json({status:401, message:"user not exist"})
         }
-        res.status(200).json({verify, token, message : "Password Reset Successfully"})
     } catch (error) {
         res.status(404).json({error: error.message})
     }
 }
-
 
 
 
@@ -178,7 +199,7 @@ module.exports = {
     signinUser,
     loginUser,
     updateProfile,
-    // updateImage,
+    updateImage,
     forgetPassword,
     resetPassword,
     changePassword,

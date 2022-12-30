@@ -104,22 +104,15 @@ userSchema.statics.fgtpswd = async function(email) {
   return user
 }
 
-// // static for reset password
-userSchema.statics.resetpswd = async function(id) {
-
-  let user = await this.findOne({_id: id})
+// //change password
+userSchema.statics.changepsw = async function(id, password, confirmPassword) {
+   let user = await this.findOne({_id: id})
 
   if (!user) {
     throw Error('User does not  exist!!')
   }
-
-  return user
-}
-userSchema.statics.changepsw = async function(email, password) {
-   let user = await this.findOne({phone})
-
-  if (!user) {
-    throw Error('User does not  exist!!')
+  if (password !== confirmPassword) {
+    throw Error('passwords does not  match!!')
   }
 
   if(!validator.isStrongPassword(password)){
@@ -130,6 +123,7 @@ userSchema.statics.changepsw = async function(email, password) {
   const hash = await bcrypt.hash(password, salt)
   
 
-  return {password: hash}
+  return hash
 }
+
 module.exports = mongoose.model('User', userSchema);

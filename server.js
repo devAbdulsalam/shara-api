@@ -44,6 +44,7 @@ mongoose.connect(process.env.MDB_URL, {
 
 ////use static for csss and other files
 app.use(express.static('public'))
+app.use("/uploads", express.static('./uploads'))
 
 app.get("/", (req, res) => {
   res.sendFile('./views/index.html', {root : __dirname});
@@ -65,6 +66,7 @@ app.post('/user/profile', async (req, res) => {
       const fileName =  new Date().getTime().toString() + path.extname(image.name);
       const savePath = path.join(__dirname, "public", "uploads", fileName);
       await image.mv(savePath)
+
       res.status(200).json({ message : "image upload Successfully"})
     } catch (error) {
         res.status(404).json({error: error.message})
