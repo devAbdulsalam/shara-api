@@ -64,13 +64,16 @@ const updateProfile = async (req, res) => {
         }
     try{
         let user = await User.findByIdAndUpdate({_id :id})
-        if(user){
+        let wallet = await Wallet.findByIdAndUpdate({_id :id})
+        if(user && wallet){
             user.name = name || req.body.name || user.name
             user.phone = phone || req.bodyphone || user.phone
+            wallet.phone = phone || req.bodyphone || wallet.phone
             user.address = address ||req.body.address || user.address
             user.email = email || req.body.email || user.email
         }
          user = await user.save()
+         wallet = await wallet.save()
         res.status(200).json({user, message: 'user Profile updated successfully'})
     } catch (error) {
         res.status(404).json({error: error.message})

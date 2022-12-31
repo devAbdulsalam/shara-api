@@ -9,12 +9,24 @@ const transactionSchema = new Schema({
     phone:{
         type : String,
         require: true
+    },    
+    amount:{
+        type : String,
+        require: true
     },
     balance:{
         type : Number,
         require: true
     },
-    transfer_pin:{
+    credit:{
+        type : String,
+        require: true
+    },
+    debit:{
+        type : String,
+        require: true
+    },
+    narration:{
         type : String,
         require: true
     },

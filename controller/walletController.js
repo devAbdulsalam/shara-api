@@ -67,17 +67,18 @@ const createPin = async (req, res) => {
 }
 // // // // // // send funds to user
 const sendMoney = async (req, res) => {
-    const {phone, amount, pin, id, token} = req.body
+    const {id : userId, phone, amount, pin, token} = req.body
     try {
-        let wallet = await Wallet.findOne({_id :id})
+        let wallet = await Wallet.findOne({userId})
+        let send = await Transaction.findOne({userId})
         let receiver = await Wallet.findOne({phone})
-        let send = await Transaction.findOne({_id :id})
+        let receive = await Transaction.findOne({phone})
         
         if (!wallet) {
             throw Error('wallet does not  exist!!')
         }
         if (!receiver) {
-            throw Error('wallet does not  exist!!')
+            throw Error('Account Number does not exist!!')
         }
         // // verify the token
         const verify =  jwt.verify(token, process.env.SECRET)
@@ -89,32 +90,51 @@ const sendMoney = async (req, res) => {
         if (!match) {
             throw Error('Incorrect password')
         }
-        if(wallet){
-            wallet.balance = wallet.balance + amount
+        if(wallet && receiver){
+            if(wallet.balance < amount){
+                throw Error('Insufficient balance')
+            }else if(wallet.balance >= amount){
+            wallet.balance = wallet.balance - amount
+            send.send = {...send.send, send : {amount: amount, to: receiver.userId, date: Date.now()}}
+            receiver.balance = receiver.balance + amount
+            receive.receive = {...receive.receive, receive : {amount: amount, from: wallet.userId, date: Date.now()}}
+            
+            wallet = await wallet.save()
+            send = await send.save()
+            receiver = await receiver.save()
+            receiver = await receiver.save()
+            res.status(200).json({pin, amount, send, wallet, message: "found sent successfully"})          
+            };
         };
-        wallet = await wallet.save()
-        res.status(200).json({pin, amount, send, wallet, message: "found sent successfully"})
-        
     } catch (error) {
-            res.status(404).json({error: error})
+            res.status(404).json({error: error.message})
         }
 }
 
 // // // // // // recieve funds to user
 const  receiveMoney = async (req, res) => {
-    const {amount, phone} = req.body
+    const {id : userId, phone, amount} = req.body
     try {
-        let wallet = await Wallet.findOne({phone})
-
+        let wallet = await Wallet.findOne({userId})
+        let receiver = await Wallet.findOne({phone})
+        
         if (!wallet) {
             throw Error('wallet does not  exist!!')
         }
-        if(wallet){
-            wallet.balance = wallet.balance + amount
+        if (!receiver) {
+            throw Error('Account Number does not exist!!')
+        }
+        if(receiver){
+           let credit = new Transaction({phone, amount,  debit:wallet.userId})
+           let debit = new Transaction({userId, amount, credit: receiver.userId})
+            receiver.balance = receiver.balance + amount
+            receiver = await receiver.save()
+            credit = credit.save()
+            debit = debit.save()
+            res.status(200).json({credit, debit, receiver, message: "fund received successfully"})
         };
-        res.status(200).json({wallet, amount, message: "fund sent successfully"})
     } catch (error) {
-            res.status(404).json({error: error})
+            res.status(404).json({error: error.message})
         }
 }
     
@@ -153,7 +173,7 @@ const sendOtp = async (req, res) => {
             res.status(401).json({error: error})
         })
     } catch (error) {
-        res.status(404).json({error: error})
+        res.status(404).json({error: error.message})
     }
 }
 
@@ -190,7 +210,7 @@ const verifyOtp = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(404).json({error: error})
+        res.status(404).json({error: error.message})
     }
 }
 
@@ -227,8 +247,8 @@ const changePin = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(404).json({error: error})
-    }
+        res.status(404).json({error: error.message})
+}
 }
 
 
