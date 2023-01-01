@@ -30,7 +30,7 @@ const loginUser = async (req, res) => {
         // create a token
         const token = createToken(user._id)
     
-        res.status(200).json({user : {user, wallet, transaction, token}, message : "Log in successfully"})
+        res.status(200).json({user, wallet, transaction, token, message : "Log in successfully"})
     } catch (error) {
         res.status(404).json({error: error.message})
     }
@@ -47,7 +47,7 @@ const signinUser = async (req, res) => {
          // create a token
         const token = createToken(user._id)
 
-        res.status(200).json({user : {user, token, wallet, transaction, }, message: "Account created successfully"})
+        res.status(200).json({user, token, wallet, transaction, message: "Account created successfully"})
     } catch (error) {
         res.status(404).json({error: error.message})
     }
@@ -56,22 +56,21 @@ const signinUser = async (req, res) => {
 
 // update User
 const updateProfile = async (req, res) => {
-    const {name, phone, address, email} = req.body
-    const {id} = req.user
-     if(!mongoose.Types.ObjectId.isValid({id})){
-         return res.status(404).json({ error: 'Not a valid user'})
-        }
+    const {id, name, phone, address, email} = req.body
+    
     try{
-        let user = await User.findByIdAndUpdate({_id :id})
-        let wallet = await Wallet.findOneAndUpdate({userId: user._id},{phone:phone});
-        if(user && wallet){
+        let user = await User.findOne({_id :id})
+        if(!user){
+            throw Error('user does not exist!!')
+        }
+        if(user){
             user.name = name || req.body.name || user.name
             user.phone = phone || req.body.phone || user.phone
             user.address = address ||req.body.address || user.address
             user.email = email || req.body.email || user.email
         }
+        let wallet = await Wallet.findOneAndUpdate({userId: id},{phone:phone});
          user = await user.save()
-         wallet = await wallet.save()
         res.status(200).json({user, wallet, message: 'user Profile updated successfully'})
     } catch (error) {
         res.status(404).json({error: error.message})
@@ -89,7 +88,10 @@ const updateImage =  async (req, res) => {
       const fileName =  new Date().getTime().toString() + path.extname(image.name);
       const savePath = path.join(__dirname, "public", "uploads", fileName);
       await image.mv(savePath)
-      let user = await User.find({_id :id})
+      let user = await User.findOne({_id :id})
+      if(!user){
+            throw Error('user does not exist!!')
+        }
         if(user){
             user.name = name || req.body.name || user.name
             user.phone = phone || req.bodyphone || user.phone
