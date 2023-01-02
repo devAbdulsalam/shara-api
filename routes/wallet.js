@@ -6,16 +6,16 @@ const {wallet, createPin,  sendMoney, receiveMoney, sendOtp, verifyOtp, changePi
 // // get wallet
 router.post('/', wallet)
 
-// // create transaction pin
-router.post('/create-pin', createPin)
-
 // // get wallet
 router.post('/send', sendMoney)
 
 // // get wallet
 router.post('/receive', receiveMoney)
 
-// // verify OTP token
+// // create transaction pin
+router.post('/create-pin', createPin)
+
+// // send OTP token
 router.post('/send-otp', sendOtp)
 
 // // verify OTP token
