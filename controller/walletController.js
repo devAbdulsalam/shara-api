@@ -1,4 +1,4 @@
-// const User = require('../models/userModel')
+const User = require('../models/userModel')
 const Wallet = require('../models/walletModel')
 const Transaction = require('../models/transactionModel')
 const jwt = require('jsonwebtoken')
@@ -11,10 +11,7 @@ const twilio = require("twilio")(accountSid, auth_token);
 const createToken = (_id) => {
   return jwt.sign({_id}, process.env.SECRET, { expiresIn: '3d' })
 }
-// Generate an OTP secret
-const secret = speakeasy.generateSecret({ length: 20 });
-// console.log(secret.base32);  // Outputs the OTP secret in base32 format
-// process.env.SECRET,
+
 
 // // // // // // User Wallet
 const wallet = async (req, res) => {
@@ -142,7 +139,7 @@ const  receiveMoney = async (req, res) => {
 const sendOtp = async (req, res) => {
     const {id, token} = req.body
     try {
-        let user = await user.findOne({_id :id})
+        let user = await User.findOne({_id :id})
 
         if (!user) {
             throw Error('user does not  exist!!')
@@ -153,7 +150,11 @@ const sendOtp = async (req, res) => {
         if(!verify){
            throw Error("verification failed")
         }
-
+        
+    
+    // Generate the OTP secret in base32 format
+    const secret = speakeasy.generateSecret({ length: 20 });
+    console.log(secret)
         // // Create the OTP token
         const OTP = speakeasy.totp({
             secret: secret.base32,
@@ -161,17 +162,19 @@ const sendOtp = async (req, res) => {
         });
 
         // // send the OTP token to the user
-        twilio.messages.create({
-            from:"+17655133822",
-            to: user.phone,
-            body:`This your ${OTP} token, valid for 5 minutes`,
-        }).then((res) => {
-            res.status(200).json({OTP, message: "Password reset link sent successfully"})
-        })
-        .catch((error) => {
-            console.log(error, "error");
-            res.status(401).json({error: error})
-        })
+    //    const sendmessage = await twilio.messages.create({
+    //         from:"+17655133822",
+    //         to: user.phone,
+    //         body:`This is your ${OTP} token, valid for 5 minutes`,
+    //     })
+        if(OTP){
+            // user = await User.findOneAndCreate({userId: id},{secret:secret});
+            // user = await user.save()
+            res.status(200).json({OTP, secret, message: "Password reset link sent successfully"})
+        }
+        if(!OTP) {
+           throw Error(error);
+        }
     } catch (error) {
         res.status(404).json({error: error.message})
     }
@@ -179,9 +182,9 @@ const sendOtp = async (req, res) => {
 
 // // // // // // Verify OTP token
 const verifyOtp = async (req, res) => {
-    const {id, token, otp} = req.body
+    const {id, token, otp, secret} = req.body
     try {
-        let user = await user.findOne({_id :id})
+        let user = await User.findOne({_id :id})
 
         if (!user) {
             throw Error('user does not  exist!!')
@@ -190,19 +193,19 @@ const verifyOtp = async (req, res) => {
         const verify =  jwt.verify(token, process.env.SECRET)
 
         if(!verify){
-           throw Error("verification failed")
+           throw Error("user not verified failed")
         }
-
         // Verify an OTP token
-        const verified = speakeasy.totp.verify({
+        const verified = await speakeasy.totp.verify({
            secret: secret.base32,
            encoding: 'base32',
            token: otp,
-           window: 2  // Allow for a 2-step window of time for the token to be verified
+           window: 4
         }); 
+        
 
         if(!verified){
-           throw Error("OTP verification failed")
+           throw Error('verification failed')
         }
 
         if(verified){
@@ -218,7 +221,7 @@ const verifyOtp = async (req, res) => {
 const changePin = async (req, res) => {
     const {id, token} = req.body
     try {
-        let user = await user.findOne({_id :id})
+        let user = await User.findOne({_id :id})
 
         if (!user) {
             throw Error('user does not  exist!!')
