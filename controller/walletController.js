@@ -162,17 +162,17 @@ const sendOtp = async (req, res) => {
         });
 
         // // send the OTP token to the user
-    //    const sendmessage = await twilio.messages.create({
-    //         from:"+17655133822",
-    //         to: user.phone,
-    //         body:`This is your ${OTP} token, valid for 5 minutes`,
-    //     })
-        if(OTP){
+       const sendmessage = await twilio.messages.create({
+            from:"+17655133822",
+            to: user.phone,
+            body:`This is your ${OTP} token, valid for 5 minutes`,
+        })
+        if(sendmessage){
             // user = await User.findOneAndCreate({userId: id},{secret:secret});
             // user = await user.save()
             res.status(200).json({OTP, secret, message: "Password reset link sent successfully"})
         }
-        if(!OTP) {
+        if(!sendmessage) {
            throw Error(error);
         }
     } catch (error) {
