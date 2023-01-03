@@ -15,19 +15,23 @@ const createToken = (_id) => {
 
 // // // // // // User Wallet
 const wallet = async (req, res) => {
-    const {id : userId, token} = req.body
+    const {phone} = req.body
     try {
-        let wallet = await Wallet.findOne({userId})
+        let user = await User.findOne({phone})
+        if (!user) {
+            throw Error('user does not  exist!!')
+        }
+        let wallet = await Wallet.findOne({phone})
         if (!wallet) {
             throw Error('wallet does not  exist!!')
         }
-        // // verify the token
-        const verify = jwt.verify(token, process.env.SECRET)
-        if(!verify){
-           throw Error("verification failed");
-        }
-        if(verify){
-            res.status(200).json({wallet, message: "wallet found successfully"})
+        // // // verify the token
+        // const verify = jwt.verify(token, process.env.SECRET)
+        // if(!verify){
+        //    throw Error("verification failed");
+        // }
+        if(user && wallet){
+            res.status(200).json({user, wallet, message: "wallet found successfully"})
         }
     } catch (error) {
             res.status(404).json({error: error.message})
@@ -64,17 +68,20 @@ const createPin = async (req, res) => {
 }
 // // // // // // send funds to user
 const sendMoney = async (req, res) => {
-    const {id : userId, phone, amount, pin, token} = req.body
+    const {id : userId, phone, amount, pin, token, narration} = req.body
     try {
-        let wallet = await Wallet.findOne({userId})
-        let send = await Transaction.findOne({userId})
-        let receiver = await Wallet.findOne({phone})
-        let receive = await Transaction.findOne({phone})
+        let sender = await User.findOne({userId})
+        let senderwlt = await Wallet.findOne({userId})
+        let senderTrans = await Transaction.findOne({userId})
+        let receiver = await User.findOne({phone})
+        let recvwlt = await Wallet.findOne({userId})
+        let recvTrans = await Transaction.findOne({phone})
+        let date = new Date().getTime().toString()
         
-        if (!wallet) {
+        if(!sender) {
             throw Error('wallet does not  exist!!')
         }
-        if (!receiver) {
+        if(!receiver) {
             throw Error('Account Number does not exist!!')
         }
         // // verify the token
@@ -83,24 +90,23 @@ const sendMoney = async (req, res) => {
         if(!verify){
            throw Error("verification failed")
         }
-        const match =  bcrypt.compare(pin, wallet.pin)
+        const match =  bcrypt.compare(pin, senderwlt.pin)
         if (!match) {
             throw Error('Incorrect password')
         }
         if(wallet && receiver){
-            if(wallet.balance < amount){
+            if(senderwlt.balance < amount){
                 throw Error('Insufficient balance')
-            }else if(wallet.balance >= amount){
-            wallet.balance = wallet.balance - amount
-            send.send = {...send.send, send : {amount: amount, to: receiver.userId, date: Date.now()}}
-            receiver.balance = receiver.balance + amount
-            receive.receive = {...receive.receive, receive : {amount: amount, from: wallet.userId, date: Date.now()}}
-            
-            wallet = await wallet.save()
-            send = await send.save()
-            receiver = await receiver.save()
-            receiver = await receiver.save()
-            res.status(200).json({pin, amount, send, wallet, message: "found sent successfully"})          
+            }else if(senderwlt.balance >= amount){
+            senderwlt.balance = senderwlt.balance - amount
+            recvwlt.balance = recvwlt.balance + amount
+            senderTrans = new Transaction({amount, balance:senderwlt.balance, debit: receiver?.name, date, narration})
+            recvTrans = new Transaction({amount, banlance: recvwlt.balance , credit: sender?.name, date, narration})
+            senderwlt = await senderwlt.save()
+            recvwlt = await recvwlt.save()
+            recvTrans = await recvTrans.save()
+            recvTrans = await senderTrans.save()
+            res.status(200).json({senderTrans, amount, recvTrans, message: "found sent successfully"})          
             };
         };
     } catch (error) {
