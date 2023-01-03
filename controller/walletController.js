@@ -100,8 +100,8 @@ const sendMoney = async (req, res) => {
             }else if(senderwlt.balance >= amount){
             senderwlt.balance = senderwlt.balance - amount
             recvwlt.balance = recvwlt.balance + amount
-            senderTrans = new Transaction({amount, balance:senderwlt.balance, debit: receiver?.name, date, narration})
-            recvTrans = new Transaction({amount, banlance: recvwlt.balance , credit: sender?.name, date, narration})
+            senderTrans = new Transaction({serId:sender.userId, amount , balance:senderwlt.balance, debit: receiver?.name, date, narration})
+            recvTrans = new Transaction({serId:sender.userId, amount, banlance: recvwlt.balance , credit: sender?.name, date, narration})
             senderwlt = await senderwlt.save()
             recvwlt = await recvwlt.save()
             recvTrans = await recvTrans.save()
