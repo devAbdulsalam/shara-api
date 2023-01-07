@@ -92,14 +92,15 @@ const sendMoney = async (req, res) => {
         }
         const match =  bcrypt.compare(pin, senderwlt.pin)
         if (!match) {
-            throw Error('Incorrect password')
+            throw Error('Incorrect pin')
         }
-        if(wallet && receiver){
+        if(senderwlt && receiver && match){
             if(senderwlt.balance < amount){
                 throw Error('Insufficient balance')
             }else if(senderwlt.balance >= amount){
             senderwlt.balance = senderwlt.balance - amount
             recvwlt.balance = recvwlt.balance + amount
+        };
             senderTrans = new Transaction({serId:sender.userId, amount , balance:senderwlt.balance, debit: receiver?.name, date, narration})
             recvTrans = new Transaction({serId:sender.userId, amount, banlance: recvwlt.balance , credit: sender?.name, date, narration})
             senderwlt = await senderwlt.save()
@@ -107,7 +108,6 @@ const sendMoney = async (req, res) => {
             recvTrans = await recvTrans.save()
             recvTrans = await senderTrans.save()
             res.status(200).json({senderTrans, amount, recvTrans, message: "found sent successfully"})          
-            };
         };
     } catch (error) {
             res.status(404).json({error: error.message})
