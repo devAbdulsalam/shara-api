@@ -8,9 +8,9 @@ const accountSid = process.env.ACCOUNT_SID
 const auth_token = process.env.AUTH_TOKEN
 const twilio = require("twilio")(accountSid, auth_token);
 
-const createToken = (_id) => {
-  return jwt.sign({_id}, process.env.SECRET, { expiresIn: '3d' })
-}
+// const createToken = (_id) => {
+//   return jwt.sign({_id}, process.env.SECRET, { expiresIn: '3d' })
+// }
 
 
 // // // // // // User Wallet
@@ -22,16 +22,31 @@ const wallet = async (req, res) => {
             throw Error('user does not  exist!!')
         }
         let wallet = await Wallet.findOne({phone})
+        let transaction = await Transaction.find({userId:user._id})
         if (!wallet) {
             throw Error('wallet does not  exist!!')
         }
-        // // // verify the token
-        // const verify = jwt.verify(token, process.env.SECRET)
-        // if(!verify){
-        //    throw Error("verification failed");
-        // }
         if(user && wallet){
-            res.status(200).json({user, wallet, message: "wallet found successfully"})
+            res.status(200).json({user, wallet, transaction, message: "wallet found successfully"})
+        }
+    } catch (error) {
+            res.status(404).json({error: error.message})
+        }
+}
+// // // // // // check receiver Wallet
+const checkWallet = async (req, res) => {
+    const {phone} = req.body
+    try {
+        let user = await User.findOne({phone}, {name})
+        if (!user) {
+            throw Error('user does not  exist!!')
+        }
+        let wallet = await Wallet.findOne({phone})
+        if (!wallet) {
+            throw Error('wallet does not  exist!!')
+        }
+        if(user && wallet){
+            res.status(200).json({user, wallet,  message: "wallet found successfully"})
         }
     } catch (error) {
             res.status(404).json({error: error.message})
@@ -69,12 +84,13 @@ const createPin = async (req, res) => {
 // // // // // // send funds to user
 const sendMoney = async (req, res) => {
     const {id : userId, phone, amount, pin, token, narration} = req.body
+    const amountToSend = parseInt(amount)
     try {
         let sender = await User.findOne({userId})
         let senderwlt = await Wallet.findOne({userId})
         let senderTrans = await Transaction.findOne({userId})
         let receiver = await User.findOne({phone})
-        let recvwlt = await Wallet.findOne({userId})
+        let recvwlt = await Wallet.findOne({phone})
         let recvTrans = await Transaction.findOne({phone})
         let date = new Date().getTime().toString()
         
@@ -95,20 +111,22 @@ const sendMoney = async (req, res) => {
             throw Error('Incorrect pin')
         }
         if(senderwlt && receiver && match){
-            if(senderwlt.balance < amount){
+            if(senderwlt.balance < amountToSend){
                 throw Error('Insufficient balance')
             }else if(senderwlt.balance >= amount){
-            senderwlt.balance = (senderwlt.balance - amount)
-            senderTrans = new Transaction({serId:sender.userId, amount , balance:senderwlt.balance, debit: receiver?.name, date, narration})
-            recvwlt.balance = (recvwlt.balance + amount)
-            recvTrans = new Transaction({serId:sender.userId, amount, balance: recvwlt.balance , credit: sender?.name, date, narration})
-            senderwlt = await senderwlt.save()
-            recvwlt = await recvwlt.save()
-            recvTrans = await recvTrans.save()
+            senderwlt.balance = senderwlt.balance - amountToSend
+            senderTrans = new Transaction({serId:sender.userId, amountToSend , balance:senderwlt.balance, debit: receiver?.name, date, narration})
             senderTrans = await senderTrans.save()
-            res.status(200).json({senderTrans, amount, recvTrans, message: "fund sent successfully"})          
+            senderwlt = await senderwlt.save()
           };
         };
+        if(senderwlt && receiver && match){
+            recvwlt.balance = recvwlt.balance + amountToSend
+            recvTrans = new Transaction({serId:sender.userId, amountToSend, balance: recvwlt.balance , credit: sender?.name, date, narration})
+            recvwlt = await recvwlt.save()
+            recvTrans = await recvTrans.save()            
+        }
+    res.status(200).json({senderTrans, amountToSend, recvTrans, message: "fund sent successfully"})          
     } catch (error) {
             res.status(404).json({error: error.message})
         }
@@ -264,6 +282,7 @@ const changePin = async (req, res) => {
 
 module.exports = {
     wallet,
+    checkWallet,
     createPin,
     sendMoney,
     receiveMoney,

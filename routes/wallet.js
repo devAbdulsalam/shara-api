@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router()
 // const requireAuth = require('../middleware/requireAuth')
-const {wallet, createPin,  sendMoney, receiveMoney, sendOtp, verifyOtp, changePin,} = require('../controller/walletController')
+const {wallet,checkWallet, createPin,  sendMoney, receiveMoney, sendOtp, verifyOtp, changePin,} = require('../controller/walletController')
 
 // // get wallet
 router.post('/', wallet)
+
+// // get wallet
+router.post('/check-wallet', checkWallet)
 
 // // get wallet
 router.post('/send', sendMoney)
