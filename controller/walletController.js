@@ -90,7 +90,7 @@ const sendMoney = async (req, res) => {
         if(!verify){
            throw Error("verification failed")
         }
-        const match =  bcrypt.compare(pin, senderwlt.pin)
+        const match =  await bcrypt.compare(pin, senderwlt.pin)
         if (!match) {
             throw Error('Incorrect pin')
         }
@@ -98,16 +98,16 @@ const sendMoney = async (req, res) => {
             if(senderwlt.balance < amount){
                 throw Error('Insufficient balance')
             }else if(senderwlt.balance >= amount){
-            senderwlt.balance = senderwlt.balance - amount
-            recvwlt.balance = recvwlt.balance + amount
-        };
+            senderwlt.balance = (senderwlt.balance - amount)
             senderTrans = new Transaction({serId:sender.userId, amount , balance:senderwlt.balance, debit: receiver?.name, date, narration})
-            recvTrans = new Transaction({serId:sender.userId, amount, banlance: recvwlt.balance , credit: sender?.name, date, narration})
+            recvwlt.balance = (recvwlt.balance + amount)
+            recvTrans = new Transaction({serId:sender.userId, amount, balance: recvwlt.balance , credit: sender?.name, date, narration})
             senderwlt = await senderwlt.save()
             recvwlt = await recvwlt.save()
             recvTrans = await recvTrans.save()
-            recvTrans = await senderTrans.save()
-            res.status(200).json({senderTrans, amount, recvTrans, message: "found sent successfully"})          
+            senderTrans = await senderTrans.save()
+            res.status(200).json({senderTrans, amount, recvTrans, message: "fund sent successfully"})          
+          };
         };
     } catch (error) {
             res.status(404).json({error: error.message})

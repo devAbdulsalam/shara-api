@@ -15,7 +15,6 @@ const userSchema = new Schema({
     email:{
         type : String,
         require: true,
-        unique: true
     },
     address:{
         type : String,
@@ -76,12 +75,12 @@ userSchema.statics.login = async function(phone, password) {
   let user = await this.findOne({phone})
 
   if (!user) {
-    throw Error('user does not  exixt')
+    throw Error('phone or password is incorrect!!')
   }
 
   const match = await bcrypt.compare(password, user.password)
   if (!match) {
-    throw Error('Incorrect password')
+    throw Error('phone or password is incorrect!!')
   }
 
   return user

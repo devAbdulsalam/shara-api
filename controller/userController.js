@@ -26,7 +26,7 @@ const loginUser = async (req, res) => {
         // retrieve user and wallet and transaction history
         const user = await User.login(phone, password)
         const wallet = await Wallet.findOne({ userId: user._id});
-        const transaction = await Transaction.findOne({ userId: user._id});
+        const transaction = await Transaction.find({ userId: user._id});
         // create a token
         const token = createToken(user._id)
     
