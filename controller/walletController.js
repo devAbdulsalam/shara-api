@@ -37,7 +37,7 @@ const wallet = async (req, res) => {
 const checkWallet = async (req, res) => {
     const {phone} = req.body
     try {
-        let user = await User.findOne({phone}, {name : 1})
+        let user = await User.findOne({phone})
         if (!user) {
             throw Error('user does not  exist!!')
         }
