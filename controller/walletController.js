@@ -37,7 +37,7 @@ const wallet = async (req, res) => {
 const checkWallet = async (req, res) => {
     const {phone} = req.body
     try {
-        let user = await User.findOne({phone}, {name})
+        let user = await User.findOne({phone}, {name : 1})
         if (!user) {
             throw Error('user does not  exist!!')
         }
@@ -115,14 +115,14 @@ const sendMoney = async (req, res) => {
                 throw Error('Insufficient balance')
             }else if(senderwlt.balance >= amount){
             senderwlt.balance = senderwlt.balance - amountToSend
-            senderTrans = new Transaction({serId:sender.userId, amountToSend , balance:senderwlt.balance, debit: receiver?.name, date, narration})
+            senderTrans = new Transaction({userId:sender.userId, amountToSend , balance:senderwlt.balance, debit: receiver?.name, date, narration})
             senderTrans = await senderTrans.save()
             senderwlt = await senderwlt.save()
           };
         };
         if(senderwlt && receiver && match){
             recvwlt.balance = recvwlt.balance + amountToSend
-            recvTrans = new Transaction({serId:sender.userId, amountToSend, balance: recvwlt.balance , credit: sender?.name, date, narration})
+            recvTrans = new Transaction({userId:receiver.userId, amountToSend, balance: recvwlt.balance , credit: sender?.name, date, narration})
             recvwlt = await recvwlt.save()
             recvTrans = await recvTrans.save()            
         }
