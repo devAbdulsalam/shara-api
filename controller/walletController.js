@@ -37,7 +37,7 @@ const wallet = async (req, res) => {
 const checkWallet = async (req, res) => {
     const {phone} = req.body
     try {
-        let user = await User.findOne({phone})
+        let user = await User.findOne({phone}, {name:1})
         if (!user) {
             throw Error('user does not  exist!!')
         }
@@ -46,7 +46,7 @@ const checkWallet = async (req, res) => {
             throw Error('wallet does not  exist!!')
         }
         if(user && wallet){
-            res.status(200).json({user, wallet,  message: "wallet found successfully"})
+            res.status(200).json({user, message: "wallet found successfully"})
         }
     } catch (error) {
             res.status(404).json({error: error.message})
@@ -76,7 +76,7 @@ const createPin = async (req, res) => {
         };
         wallet = await wallet.save()
 
-        res.status(200).json({wallet, pin, message: "transaction pin created successfully"})
+        res.status(200).json({wallet, message: "transaction pin created successfully"})
     } catch (error) {
         res.status(404).json({error: error.message})
     }
@@ -126,7 +126,7 @@ const sendMoney = async (req, res) => {
             recvwlt = await recvwlt.save()
             recvTrans = await recvTrans.save()            
         }
-    res.status(200).json({senderTrans, amountToSend, recvTrans, message: "fund sent successfully"})          
+    res.status(200).json({senderTrans, message: "fund sent successfully"})          
     } catch (error) {
             res.status(404).json({error: error.message})
         }
