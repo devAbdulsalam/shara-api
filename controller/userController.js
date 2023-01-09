@@ -186,6 +186,33 @@ const changePassword = async (req, res) => {
 }
 
 
+const deleteUser = async(req, res) =>{
+   const {id, token} = req.body
+    try {
+        // // verify the token
+        const verify =  jwt.verify(token, process.env.SECRET)
+        if(!verify){
+            return res.status(401).json({error: "verification failed"}) 
+        }
+        if(verify){
+          
+            let user = await User.findByIdAndDelete({_id:id});
+            let wallet = await Wallet.findByIdAndDelete({ userId: user._id});
+            let transaction = await Transaction.findByIdAndDelete({ userId: user._id});
+            
+            user = await user.save()
+            wallet = await wallet.save()
+            transaction = await transaction.save()
+            res.status(200).json({message: "Account Deleted Successfully"})
+
+        }else{
+            res.status(401).json({status:401, message:"user not exist"})
+        }
+    } catch (error) {
+        res.status(404).json({error: error.message})
+    }
+}
+
 
 
 module.exports = {
@@ -196,4 +223,5 @@ module.exports = {
     forgetPassword,
     resetPassword,
     changePassword,
+    deleteUser
 }
