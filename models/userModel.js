@@ -42,7 +42,7 @@ userSchema.statics.signup = async function (name, phone, password) {
 	if (!phone) {
 		throw Error('Phone Number is required');
 	}
-	// //Validator
+	// //Validator for strong password
 	// if(!validator.isStrongPassword(password)){
 	//     throw Error('Input a strong password')
 	// }
