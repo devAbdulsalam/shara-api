@@ -3,20 +3,20 @@ const Wallet = require('../models/walletModel')
 const Transaction = require('../models/transactionModel')
 const jwt = require('jsonwebtoken')
 const mongoose = require("mongoose");
-const nodemailer = require("nodemailer");
+const cloudinary = require('../utils/cloudinary')
+const transporter = require('../utils/transporter')
 
 const createToken = (_id) => {
   return jwt.sign({_id}, process.env.SECRET, { expiresIn: '3d' })
 }
+
+const file = 'path/to/image.jpg';
+const options = {
+  public_id: 'user_image'
+};
+
 // email config
 
-const transporter = nodemailer.createTransport({
-    service:"gmail",
-    auth:{
-        user:process.env.EMAIL,
-        pass:process.env.PASSWORD
-    }
-}) 
 
 
 // // login user
@@ -69,6 +69,14 @@ const updateProfile = async (req, res) => {
             user.address = address ||req.body.address || user.address
             user.email = email || req.body.email || user.email
         }
+        
+        cloudinary.uploader.upload(file, options, (error, result) => {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log(result);
+        }
+        });
         let wallet = await Wallet.findOneAndUpdate({userId: id},{phone:phone});
          user = await user.save()
         res.status(200).json({user, wallet, message: 'user Profile updated successfully'})

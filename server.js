@@ -43,6 +43,9 @@ mongoose.connect(process.env.MDB_URL, {
 .catch((err) => console.log(err));
 
 
+
+
+
 ////use static for csss and other files
 app.use(express.static('public'))
 app.use("/uploads", express.static('./uploads'))
@@ -61,7 +64,6 @@ app.use("/wallet", walletRoutes)
 // // user profile
 app.post('/user/profile', async (req, res) => {
   const {name, phone, email, address} = JSON.parse(req.body.user)
-  console.log(name, phone, email, address)
   try {
     const image = req.files.image
       const fileName =  new Date().getTime().toString() + path.extname(image.name);
@@ -79,4 +81,6 @@ app.post('/user/profile', async (req, res) => {
 app.use( (req, res) =>{
     res.status(404).sendFile('./views/404.html', {root : __dirname});
 })
+
+
 
